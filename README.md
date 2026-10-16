@@ -33,15 +33,29 @@ This project ingests **NYC Yellow Taxi trip data**, applies robust **schema enfo
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart LR
-    A[(Raw Parquet<br/>Source Data)] --> B[🥉 Bronze Layer<br/>Raw Delta Tables]
-    B --> C[🥈 Silver Layer<br/>Cleansed + SCD2 + Facts]
-    C --> D[🥇 Gold Layer<br/>Aggregated Data Marts]
-    D --> E[📊 Dashboard]
-    F[Unity Catalog] -.governs.-> B
-    F -.governs.-> C
-    F -.governs.-> D
+```text
+ ┌──────────────────────────┐
+ │  Raw Parquet Source Data │
+ └────────────┬─────────────┘
+              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │ 🥉 BRONZE  →  Ingestion & Storage (Raw Delta Tables)      │
+ └────────────┬─────────────────────────────────────────────┘
+              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │ 🥈 SILVER  →  Cleansing, Schema Enforcement,              │
+ │               SCD Type 2 Dimensions & Fact Tables         │
+ └────────────┬─────────────────────────────────────────────┘
+              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │ 🥇 GOLD    →  Aggregated Data Marts (Business-Ready)      │
+ └────────────┬─────────────────────────────────────────────┘
+              ▼
+ ┌──────────────────────────┐
+ │  📊 Analytics Dashboard  │
+ └──────────────────────────┘
+
+   Unity Catalog governs all layers (Bronze / Silver / Gold)
 ```
 
 | Layer | Purpose |
@@ -56,13 +70,11 @@ flowchart LR
 
 > Interactive analytics dashboard built on top of the Gold layer.
 
-<div align="center">
+<p align="center">
+  <img src="./dashboard/dashboard_preview.png" alt="NYC Taxi Analytics Dashboard" width="900"/>
+</p>
 
-![NYC Taxi Analytics Dashboard](dashboard/dashboard_preview.png)
-
-</div>
-
-📄 Dashboard file: [`dashboard/`](./dashboard) &nbsp;|&nbsp; 📑 Full POC document: [`POC/NYC_Taxi_Lakehouse_POC.pdf`](./POC/NYC_Taxi_Lakehouse_POC.pdf)
+📂 Dashboard files: [`dashboard/`](./dashboard) &nbsp;|&nbsp; 📑 Full POC document: [`POC/NYC_Taxi_Lakehouse_POC.pdf`](./POC/NYC_Taxi_Lakehouse_POC.pdf)
 
 ---
 
@@ -197,5 +209,12 @@ The GitHub Actions workflow in `.github/workflows/ci-cd.yaml` automates validati
 <div align="center">
 
 ⭐ If you found this project useful, please consider giving it a star!
+
+---
+
+© 2026 **Avani Sharma**. All Rights Reserved.
+
+This project is created for learning and portfolio purposes.
+Unauthorized copying or redistribution of this work without credit to the author is not permitted.
 
 </div>
