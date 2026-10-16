@@ -60,7 +60,6 @@ NYC-taxi-project/
 │   └── nyc_taxi_analytics.lvdash.json
 ├── data/                    # Sample lookup files (e.g., taxi_zone_lookup.csv)
 ├── POC/                     # Proof-of-concept scripts & exploratory notebooks
-├── .gitignore
 └── README.md
 ```
 
