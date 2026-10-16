@@ -1,48 +1,38 @@
-# NYC Taxi Data Engineering Pipeline
+# 🚕 NYC Taxi End-to-End Data Engineering Lakehouse Pipeline
 
-An end-to-end Data Engineering pipeline built on **Databricks** utilizing the **Medallion Architecture (Bronze -> Silver -> Gold)**. This project ingests raw NYC Yellow & Green Taxi trip data, cleanses and transforms it, enriches it with lookup information, and creates aggregated analytical views ready for business dashboards and reporting.
+An production-grade **Lakehouse Data Engineering Pipeline** built on **Databricks** using the **Medallion Architecture (Bronze ➔ Silver ➔ Gold)**. This project ingests NYC Yellow Taxi trip datasets, applies robust schema enforcement, handles **SCD Type 2 dimension tracking**, executes data quality validation checks, and creates aggregated analytical data marts ready for business dashboards.
 
 ---
 
-## 📐 Architecture Overview
+## 🏗️ Architecture Overview
 
-The data pipeline processes high-volume trip data through three core layers:
+The pipeline processes raw Parquet data using Unity Catalog, PySpark, and Delta Lake format across three structured layers:
 
 ```text
-[ Raw Data Source ]
-        │
-        ▼
-[ Bronze Layer ]   ──► Ingestion & Raw Storage (Parquet / Delta Format)
-        │
-        ▼
-[ Silver Layer ]   ──► Data Cleansing, Schema Enforcement, Deduplication, & Enrichment
-        │
-        ▼
-[ Gold Layer ]     ──► Aggregations, Metrics Calculation & KPI Tables
-        │
-        ▼
-[ Analytics & BI ] ──► Databricks Lakeview Dashboards
-```
+[ Raw Parquet Source Data ]
+         │
+         ▼
+[ Bronze Layer ]   ──► Ingestion & Storage (Unity Catalog Raw Delta Tables)
+         │
+         ▼
+[ Silver Layer ]   ──► Data Cleansing, Schema Enforcement, SCD Type 2 Dimensions & Fact Tables
+         │
+         ▼
+[ Gold Layer ]     ──► Aggregated Data Marts, KPIs & Data Quality Checks
+         │
+         ▼
+[ Analytics & BI ] ──► Databricks Lakeview Dashboard & BI Reporting
 
 ---
 
-## 🏗️ Medallion Pipeline Layers
+## 🌟 Key Features
 
-### 1. 🥉 Bronze Layer (Raw Data Ingestion)
-- Ingests raw trip record dataset (Yellow & Green Taxi trips).
-- Preserves raw source schema without destructive transformations.
-- Converts raw format into **Delta Lake** tables for ACID compliance and efficient query execution.
-
-### 2. 🥈 Silver Layer (Data Cleansing & Enrichment)
-- **Cleansing:** Filters out invalid trips (e.g., zero/negative distances, invalid passenger counts, negative fare amounts).
-- **Data Standardization:** Casts timestamps, trip durations, and fare metrics to proper data types.
-- **Enrichment:** Joins trip data with **Taxi Zone Lookup** datasets to map Location IDs (`PULocationID`, `DOLocationID`) to actual Boroughs and Zones.
-
-### 3. 🥇 Gold Layer (Aggregations & Business KPIs)
-Calculates key metrics to drive business decisions, including:
-- **Daily & Monthly Summary:** Total trips, total revenue, average fare per trip, and average distance.
-- **Borough Performance:** Pickup and drop-off hotspot analysis by Borough.
-- **Payment Insights:** Payment method distributions (Credit Card vs. Cash) and tipping trends.
+* **Unity Catalog Governance:** Complete governance and structured cataloging across catalogs, schemas, and volumes.
+* **Medallion Architecture:** Clear separation of concerns with Bronze (Raw), Silver (Cleansed/Fact-Dim), and Gold (Marts).
+* **Slowly Changing Dimensions (SCD Type 2):** Historical tracking for taxi zone updates and lookup metadata.
+* **Data Quality Framework:** Explicit verification notebooks testing schema constraints, zero/negative metrics, and null handling.
+* **Performance Optimization:** Delta table maintenance, Z-Ordering, VACUUM, and OPTIMIZE configurations.
+* **CI/CD Automation:** GitHub Actions workflow (`ci-cd.yaml`) for automated testing and workspace deployment.
 
 ---
 
@@ -50,58 +40,63 @@ Calculates key metrics to drive business decisions, including:
 
 ```text
 NYC-taxi-project/
-├── notebooks/               # Databricks PySpark & SQL Notebooks
-│   ├── 01_bronze_ingestion.py
-│   ├── 02_silver_transformation.py
-│   └── 03_gold_aggregations.py
-├── workflows/               # Databricks Job Workflows export
-│   └── workflow-config.json
-├── dashboards/              # Databricks Lakeview Dashboard export
-│   └── nyc_taxi_analytics.lvdash.json
-├── data/                    # Sample lookup files (e.g., taxi_zone_lookup.csv)
-├── POC/                     # Proof-of-concept scripts & exploratory notebooks
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yaml                   # GitHub Actions CI/CD Deployment Pipeline
+├── notebooks/                           # Databricks Lakehouse Pipeline Notebooks
+│   ├── 01_config.py                     # Centralized variables, catalog & schema paths
+│   ├── 02_setup_unity_catalog.py        # Unity Catalog structure & volume setup
+│   ├── 03_bronze_layer.ipynb            # Ingestion of raw yellow trip Parquet files
+│   ├── 04_silver_layer.ipynb            # Cleansing, typecasting & null handling
+│   ├── 05_dimensions_scd2.py            # Taxi Zone Dimension handling via SCD Type 2
+│   ├── 06_fact_trips.py                 # Fact table construction & joins
+│   ├── 07_gold_marts.py                 # Business KPI aggregations & summary tables
+│   ├── 08_data_quality_checks.py        # Automated schema & metrics validation tests
+│   └── 09_optimize_and_maintenance.py   # OPTIMIZE, Z-Order, and Delta VACUUM routines
+├── workflows/
+│   └── workflow-config.json             # Databricks Workflows (Jobs API) export
+├── dashboard/
+│   └── NYC Taxi Analytics Dashboard     # Exported Databricks Lakeview Dashboard
+├── data/                                # Reference data & raw trip data samples
+│   ├── taxi_zone_lookup.csv
+│   ├── taxi_zone_lookup_v2.csv
+│   └── yellow_tripdata_2024-01.parquet
+├── POC/                                 # Proof-of-concept design & architecture documentation
+│   └── NYC_Taxi_Lakehouse_POC.pdf
 └── README.md
-```
 
 ---
 
-## ⚙️ Databricks Workflow & Job Automation
+## 🚀 Pipeline Execution Flow
 
-The end-to-end pipeline is orchestrated using **Databricks Workflows (Jobs)**:
-- Sequential task dependency management (`Bronze` ➔ `Silver` ➔ `Gold`).
-- Automated retry mechanisms and email alert notifications on failure.
-- Exported JSON configuration is available under `workflows/workflow-config.json` for CI/CD deployment or workspace replication.
-
----
-
-## 📊 Dashboard & Key Metrics
-
-The pipeline feeds into an interactive **Databricks Lakeview Dashboard** to monitor key operational metrics:
-- **Total Revenue & Trip Counts** over time.
-- **Peak Hours Analysis** (busiest times of day by pickup location).
-- **Average Tip Percentage** broken down by trip distance and fare class.
-- **Borough Distribution Heatmap**.
-
----
-
-## 🛠️ Tech Stack & Tools
-
-- **Storage & Processing Platform:** Databricks
-- **Compute Framework:** Apache Spark / PySpark
-- **Table Format:** Delta Lake
-- **Language:** Python, PySpark, Spark SQL
-- **Orchestration:** Databricks Workflows (Jobs API)
-- **Visualization:** Databricks Lakeview Dashboards
-- **Version Control:** Git & GitHub
+1. **`01_config` & `02_setup_unity_catalog`:** Initializes workspace configurations, catalogs, schemas, and external storage locations.
+2. **`03_bronze_layer`:** Reads raw `yellow_tripdata_2024-01.parquet` into append-only Delta Lake tables.
+3. **`04_silver_layer` & `05_dimensions_scd2`:** 
+   - Cleanses invalid trip records (negative fares, invalid distances, invalid passenger counts).
+   - Standardizes timestamps, duration, and lookup keys.
+   - Manages lookup zone dimension changes using SCD Type 2 logic (`taxi_zone_lookup_v2.csv`).
+4. **`06_fact_trips`:** Merges cleansed trip metrics with dimensional keys to form the core Fact table.
+5. **`07_gold_marts`:** Builds business-level analytical views:
+   - Daily & monthly trip counts, total revenue, and average trip distance.
+   - Pickup and drop-off borough hotspot analysis.
+   - Payment method breakdown and tip percentage trends.
+6. **`08_data_quality_checks`:** Validates key data constraints and integrity assertions across all layers.
+7. **`09_optimize_and_maintenance`:** Executes `OPTIMIZE` with `Z-ORDER BY` on frequently filtered keys and runs `VACUUM` to clean obsolete Delta files.
 
 ---
 
-## 🚀 How to Run
+## ⚙️ CI/CD & Orchestration
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/NYC-taxi-project.git
-   ```
-2. **Import Notebooks:** Import the scripts inside `notebooks/` into your Databricks Workspace.
-3. **Upload Zone Lookup Data:** Place `taxi_zone_lookup.csv` in DBFS or Unity Catalog Volume.
-4. **Deploy Workflow:** Import `workflows/workflow-config.json` in Databricks Workflows to create and run the automated job.
+* **Databricks Workflows:** Jobs orchestrated sequentially via `workflows/workflow-config.json` with retry handling and alerts.
+* **GitHub Actions:** CI/CD pipeline configured under `.github/workflows/ci-cd.yaml` to deploy code seamlessly into Databricks workspaces upon commits.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Platform:** Databricks (Unity Catalog)
+* **Compute / Processing:** Apache Spark, PySpark, Spark SQL
+* **Storage Format:** Delta Lake
+* **Orchestration:** Databricks Workflows
+* **CI/CD:** GitHub Actions
+* **Visualization:** Databricks Lakeview Dashboard
