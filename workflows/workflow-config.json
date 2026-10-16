@@ -1,0 +1,139 @@
+{
+  "name": "NYC taxi lakehouse",
+  "email_notifications": {
+    "no_alert_for_skipped_runs": false
+  },
+  "webhook_notifications": {},
+  "timeout_seconds": 0,
+  "trigger": {
+    "pause_status": "UNPAUSED",
+    "file_arrival": {
+      "url": "/Volumes/nyc_taxi/landing/files/",
+      "wait_after_last_change_seconds": 60
+    }
+  },
+  "max_concurrent_runs": 1,
+  "tasks": [
+    {
+      "task_key": "bronze",
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/03_bronze_layer",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "silver",
+      "depends_on": [
+        {
+          "task_key": "bronze"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/04_silver_layer",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "dimension",
+      "depends_on": [
+        {
+          "task_key": "silver"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/05_dimensions_scd2",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "fact",
+      "depends_on": [
+        {
+          "task_key": "dimension"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/06_fact_trips",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "gold_marts",
+      "depends_on": [
+        {
+          "task_key": "fact"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/07_gold_marts",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "data_quality_check",
+      "depends_on": [
+        {
+          "task_key": "gold_marts"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/avani.sharma2324@gmail.com/08_data_quality_checks",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {},
+      "disabled": false
+    },
+    {
+      "task_key": "NYC_dashboard",
+      "depends_on": [
+        {
+          "task_key": "data_quality_check"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "dashboard_task": {
+        "subscription": {
+          "attachment": {
+            "page_attachment": {}
+          }
+        },
+        "dashboard_id": "01f1c58e81d619c2ab830c32d9425cba"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "disabled": false
+    }
+  ],
+  "queue": {
+    "enabled": true
+  },
+  "performance_target": "PERFORMANCE_OPTIMIZED"
+}
