@@ -26,4 +26,4 @@ jobs:
           DATABRICKS_HOST: https://${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          databricks workspace import-dir notebooks /Workspace/Users/Public/nyc-taxi-project --overwrite
+          databricks workspace import-dir notebooks /Shared/nyc-taxi-project --overwrite
